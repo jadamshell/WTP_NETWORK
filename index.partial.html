@@ -1,0 +1,332 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <style>
+    /* Previous styles remain the same */
+    .container {
+      width: 100%;
+      height: 100vh;
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+      position: relative;
+    }
+    
+    .network-container {
+      position: relative;
+      width: 100%;
+      height: 100%;
+      overflow: hidden;
+    }
+    
+    .background-image {
+      width: 100%;
+      height: 100%;
+      object-fit: contain;
+      position: absolute;
+      top: 0;
+      left: 0;
+    }
+    
+    .network-overlay {
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      pointer-events: none;
+    }
+    
+    .network-overlay svg {
+      width: 100%;
+      height: 100%;
+    }
+    
+    .junction {
+      cursor: pointer;
+      pointer-events: all;
+    }
+
+    .junction-node {
+      fill: #2196F3;
+      stroke: white;
+      stroke-width: 2;
+      filter: drop-shadow(0 0 2px rgba(33, 150, 243, 0.3));
+      transition: filter 0.3s ease;
+    }
+
+    .junction-node.source {
+      fill: #4CAF50;
+      filter: drop-shadow(0 0 2px rgba(76, 175, 80, 0.3));
+    }
+
+    .junction-node.pump {
+      fill: #FF0000;
+      filter: drop-shadow(0 0 2px rgba(255, 0, 0, 0.3));
+    }
+
+    .junction-node.tank {
+      fill: #9C27B0;
+      filter: drop-shadow(0 0 2px rgba(156, 39, 176, 0.3));
+    }
+    
+    .junction:hover .junction-node {
+      filter: drop-shadow(0 0 12px rgba(33, 150, 243, 1));
+    }
+
+    .junction:hover .junction-node.source {
+      filter: drop-shadow(0 0 12px rgba(76, 175, 80, 1));
+    }
+
+    .junction:hover .junction-node.pump {
+      filter: drop-shadow(0 0 12px rgba(255, 0, 0, 1));
+    }
+
+    .junction:hover .junction-node.tank {
+      filter: drop-shadow(0 0 12px rgba(156, 39, 176, 1));
+    }
+    
+    .pipe {
+      stroke: rgba(33, 150, 243, 0.2);
+      stroke-width: 3;
+      fill: none;
+    }
+    
+    .pipe-flow {
+      stroke: #64B5F6;
+      stroke-width: 6;
+      fill: none;
+      stroke-dasharray: 20 200;
+      animation: flow 2s linear infinite;
+      filter: drop-shadow(0 0 3px rgba(100, 181, 246, 0.2));
+    }
+
+    @keyframes flow {
+      0% {
+        stroke-dashoffset: 220;
+      }
+      100% {
+        stroke-dashoffset: 0;
+      }
+    }
+
+    .tooltip {
+      position: absolute;
+      padding: 10px;
+      background: rgba(0, 0, 0, 0.8);
+      color: white;
+      border-radius: 4px;
+      font-size: 12px;
+      pointer-events: none;
+      opacity: 0;
+      transition: opacity 0.2s;
+      z-index: 1000;
+    }
+
+    /* New styles for elevation button and modal */
+    .elevation-button {
+      position: absolute;
+      top: 20px;
+      right: 20px;
+      padding: 10px 20px;
+      background-color: #2196F3;
+      color: white;
+      border: none;
+      border-radius: 4px;
+      cursor: pointer;
+      font-size: 14px;
+      transition: all 0.3s ease;
+      box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+      z-index: 100;
+      pointer-events: all;
+    }
+
+    .elevation-button:hover {
+      background-color: #1976D2;
+      box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3);
+    }
+
+    .modal-overlay {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background-color: rgba(0, 0, 0, 0.5);
+      display: none;
+      justify-content: center;
+      align-items: center;
+      z-index: 1000;
+    }
+
+    .modal-content {
+      background-color: white;
+      padding: 20px;
+      border-radius: 8px;
+      position: relative;
+      width: 90%;
+      max-width: 1200px;
+      box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+    }
+
+    .close-button {
+      position: absolute;
+      top: 10px;
+      right: 10px;
+      background: none;
+      border: none;
+      font-size: 24px;
+      cursor: pointer;
+      color: #666;
+      padding: 5px;
+      line-height: 1;
+    }
+
+    .close-button:hover {
+      color: #000;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <div class="network-container">
+      <img src="https://i.imgur.com/WUo8o2M.jpeg" class="background-image" alt="Water Network Background" />
+      <div class="network-overlay">
+        <button class="elevation-button">Show Elevation Profile</button>
+        <svg viewBox="0 0 1000 1000" preserveAspectRatio="xMidYMid meet"></svg>
+      </div>
+    </div>
+    <div id="tooltip" class="tooltip"></div>
+  </div>
+
+  <!-- Modal for elevation profile -->
+  <div class="modal-overlay">
+    <div class="modal-content">
+      <button class="close-button">&times;</button>
+      <iframe src='https://flo.uri.sh/visualisation/20560718/embed' 
+              title='Interactive or visual content' 
+              class='flourish-embed-iframe' 
+              frameborder='0' 
+              scrolling='no' 
+              style='width:100%;height:600px;' 
+              sandbox='allow-same-origin allow-forms allow-scripts allow-downloads allow-popups allow-popups-to-escape-sandbox allow-top-navigation-by-user-activation'>
+      </iframe>
+    </div>
+  </div>
+
+  <script>
+    const nodes = [
+      { id: '9', x: 884, y: 157.5, type: 'source', demand: 0, elevation: 800, incomeRange: '' },
+      { id: 'pump', x: 884, y: 266.5, type: 'pump', demand: 0, elevation: 785, incomeRange: '' },
+      { id: '10', x: 884.6, y: 403.9, type: 'junction', demand: 30.05719817, elevation: 785, incomeRange: '$51,000 - $150,000' },
+      { id: '11', x: 630.8, y: 405.2, type: 'junction', demand: 36.06863924, elevation: 785, incomeRange: '$51,000 - $150,000' },
+      { id: '12', x: 388, y: 406, type: 'junction', demand: 42.08008034, elevation: 775, incomeRange: '$51,000 - $150,000' },
+      { id: '13', x: 137.5, y: 406, type: 'junction', demand: 26.82780134, elevation: 770, incomeRange: '$15,080 - $50,000' },
+      { id: '21', x: 630.8, y: 649.5, type: 'junction', demand: 29.51057734, elevation: 775, incomeRange: '$151,000 - $500,000' },
+      { id: '22', x: 388, y: 649.5, type: 'junction', demand: 32.19336418, elevation: 770, incomeRange: '$151,000 - $500,000' },
+      { id: '23', x: 137.5, y: 649.5, type: 'junction', demand: 22.56193828, elevation: 765, incomeRange: '$151,000 - $500,000' },
+      { id: '31', x: 630.8, y: 884.5, type: 'junction', demand: 21.4338395, elevation: 775, incomeRange: '$15,080 - $50,000' },
+      { id: '32', x: 388, y: 885.5, type: 'junction', demand: 20.30574123, elevation: 785, incomeRange: '$15,080 - $50,000' },
+      { id: '2', x: 388, y: 220, type: 'tank', demand: 0, elevation: 870, incomeRange: '' }
+    ];
+
+
+    const pipes = [
+      { from: '9', to: 'pump' },
+      { from: 'pump', to: '10' },
+      { from: '10', to: '11' },
+      { from: '11', to: '12' },
+      { from: '12', to: '13' },
+      { from: '21', to: '22' },
+      { from: '22', to: '23' },
+      { from: '31', to: '32' },
+      { from: '2', to: '12' },
+      { from: '11', to: '21' },
+      { from: '12', to: '22' },
+      { from: '13', to: '23' },
+      { from: '21', to: '31' },
+      { from: '22', to: '32' }
+    ];
+
+    const svg = document.querySelector('.network-overlay svg');
+    const tooltip = document.querySelector('.tooltip');
+
+    // Draw pipes first (bottom layer)
+    pipes.forEach(pipe => {
+      const fromNode = nodes.find(n => n.id === pipe.from);
+      const toNode = nodes.find(n => n.id === pipe.to);
+      
+      const path = document.createElementNS('http://www.w3.org/2000/svg', 'line');
+      path.setAttribute('x1', fromNode.x);
+      path.setAttribute('y1', fromNode.y);
+      path.setAttribute('x2', toNode.x);
+      path.setAttribute('y2', toNode.y);
+      path.classList.add('pipe');
+      svg.appendChild(path);
+
+      const flowPath = document.createElementNS('http://www.w3.org/2000/svg', 'line');
+      flowPath.setAttribute('x1', fromNode.x);
+      flowPath.setAttribute('y1', fromNode.y);
+      flowPath.setAttribute('x2', toNode.x);
+      flowPath.setAttribute('y2', toNode.y);
+      flowPath.classList.add('pipe-flow');
+      svg.appendChild(flowPath);
+    });
+
+    // Draw nodes (top layer)
+    nodes.forEach(node => {
+      const group = document.createElementNS('http://www.w3.org/2000/svg', 'g');
+      group.classList.add('junction');
+      
+      const circle = document.createElementNS('http://www.w3.org/2000/svg', 'circle');
+      circle.setAttribute('cx', node.x);
+      circle.setAttribute('cy', node.y);
+      circle.setAttribute('r', 8);
+      circle.classList.add('junction-node');
+      circle.classList.add(node.type);
+      
+      group.appendChild(circle);
+      
+       group.addEventListener('mouseover', (e) => {
+        tooltip.style.left = (e.clientX + 10) + 'px';
+        tooltip.style.top = (e.clientY - 10) + 'px';
+        tooltip.innerHTML = `
+          <div class="tooltip-title">Node ${node.id}</div>
+          <div class="tooltip-content">
+            Type: ${node.type.charAt(0).toUpperCase() + node.type.slice(1)}<br>
+            Elevation: ${node.elevation} ft<br>
+            ${node.demand ? `Baseline Demand: ${node.demand.toFixed(2)} GPM<br>` : ''}
+            ${node.incomeRange ? `Income Range: ${node.incomeRange}` : ''}
+          </div>
+        `;
+        tooltip.style.opacity = 1;
+      });
+      
+      group.addEventListener('mouseout', () => {
+        tooltip.style.opacity = 0;
+      });
+      
+      svg.appendChild(group);
+    });
+
+    // Modal functionality
+    const modalOverlay = document.querySelector('.modal-overlay');
+    const elevationButton = document.querySelector('.elevation-button');
+    const closeButton = document.querySelector('.close-button');
+
+    elevationButton.addEventListener('click', () => {
+      modalOverlay.style.display = 'flex';
+    });
+
+    closeButton.addEventListener('click', () => {
+      modalOverlay.style.display = 'none';
+    });
+
+    modalOverlay.addEventListener('click', (e) => {
+      if (e.target === modalOverlay) {
+        modalOverlay.style.display = 'none';
+      }
+    });
+  </script>
+</body>
+</html>
